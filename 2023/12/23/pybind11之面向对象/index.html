@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Anonymous Pro:300,300italic,400,400italic,700,700italic|Courier New:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"sazareame.gitbub.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="之前已经说过了如何利用pybind进行简单的API创建和使用：pybind11使用, 这次来看面向对象。 绑定cxx的类或结构体 有关cxx中class和struct的区别，应该已经毋须多说了吧。简单来说除了里面字段的默认访问权限和默认继承种类不一样外，惟一的区别就是class有五个字母而struct有六个了。我们在cxx中搞一个类， 这里我们弄复杂点，把类的声明、类的实现和绑定分三个文件写： 1">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pybind11之面向对象">
+<meta property="og:url" content="https://sazareame.gitbub.io/2023/12/23/pybind11%E4%B9%8B%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/index.html">
+<meta property="og:site_name" content="人生何處不相逢？">
+<meta property="og:description" content="之前已经说过了如何利用pybind进行简单的API创建和使用：pybind11使用, 这次来看面向对象。 绑定cxx的类或结构体 有关cxx中class和struct的区别，应该已经毋须多说了吧。简单来说除了里面字段的默认访问权限和默认继承种类不一样外，惟一的区别就是class有五个字母而struct有六个了。我们在cxx中搞一个类， 这里我们弄复杂点，把类的声明、类的实现和绑定分三个文件写： 1">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://sazareame.gitbub.io/pic/pybind/4.png">
+<meta property="og:image" content="https://sazareame.gitbub.io/pic/pybind/5.png">
+<meta property="article:published_time" content="2023-12-23T04:32:56.000Z">
+<meta property="article:modified_time" content="2024-01-05T13:36:34.437Z">
+<meta property="article:author" content="sazareame&#x2F;aisis">
+<meta property="article:tag" content="cxx">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="pybind">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://sazareame.gitbub.io/pic/pybind/4.png">
+
+<link rel="canonical" href="https://sazareame.gitbub.io/2023/12/23/pybind11%E4%B9%8B%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>pybind11之面向对象 | 人生何處不相逢？</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">人生何處不相逢？</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">sazareame</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/sazareame" class="github-corner" title="ciallo" aria-label="ciallo" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://sazareame.gitbub.io/2023/12/23/pybind11%E4%B9%8B%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/lika.jpg">
+      <meta itemprop="name" content="sazareame/aisis">
+      <meta itemprop="description" content="中國科學技術大學">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人生何處不相逢？">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          pybind11之面向对象
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-12-23 12:32:56" itemprop="dateCreated datePublished" datetime="2023-12-23T12:32:56+08:00">2023-12-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-01-05 21:36:34" itemprop="dateModified" datetime="2024-01-05T21:36:34+08:00">2024-01-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>之前已经说过了如何利用pybind进行简单的API创建和使用：<a href="/2023/12/22/pybind11%E4%BD%BF%E7%94%A8/" title="pybind11使用">pybind11使用</a>, 这次来看面向对象。</p>
+<h3 id="绑定cxx的类或结构体">绑定cxx的类或结构体</h3>
+<p>有关cxx中<code>class</code>和<code>struct</code>的区别，应该已经毋须多说了吧。简单来说除了里面字段的默认访问权限和默认继承种类不一样外，惟一的区别就是class有五个字母而struct有六个了。我们在cxx中搞一个类， 这里我们弄复杂点，把类的声明、类的实现和绑定分三个文件写：<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// pyb/include/vec.hxx</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Vec</span>&#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">  <span class="type">double</span> x&#123;<span class="number">0</span>&#125;;</span><br><span class="line">  <span class="type">double</span> y&#123;<span class="number">0</span>&#125;;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="built_in">Vec</span>(<span class="type">double</span> _x, <span class="type">double</span> _y);</span><br><span class="line">  <span class="built_in">Vec</span>(Vec <span class="type">const</span>&amp; src);</span><br><span class="line">  Vec <span class="keyword">operator</span>+(Vec <span class="type">const</span>&amp; rhs)<span class="type">const</span>;</span><br><span class="line">  Vec <span class="keyword">operator</span>-(Vec <span class="type">const</span>&amp; rhs)<span class="type">const</span>;</span><br><span class="line">  <span class="type">double</span> <span class="keyword">operator</span>*(Vec <span class="type">const</span>&amp; rhs)<span class="type">const</span>;</span><br><span class="line">  <span class="function"><span class="type">double</span> <span class="title">norm</span><span class="params">()</span><span class="type">const</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// pyb/src/vec.cc</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;vec.hxx&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;cmath&gt;</span></span></span><br><span class="line"></span><br><span class="line">Vec::<span class="built_in">Vec</span>(<span class="type">double</span> _x, <span class="type">double</span> _y): <span class="built_in">x</span>(_x), <span class="built_in">y</span>(_y)&#123;&#125;</span><br><span class="line"></span><br><span class="line">Vec::<span class="built_in">Vec</span>(Vec <span class="type">const</span>&amp; src): <span class="built_in">x</span>(src.x), <span class="built_in">y</span>(src.y)&#123;&#125;</span><br><span class="line"></span><br><span class="line">Vec Vec::<span class="keyword">operator</span>+(Vec <span class="type">const</span>&amp; rhs)<span class="type">const</span>&#123;</span><br><span class="line">  <span class="keyword">return</span> &#123;x + rhs.x, y + rhs.y&#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">Vec Vec::<span class="keyword">operator</span>-(Vec <span class="type">const</span>&amp; rhs)<span class="type">const</span>&#123;</span><br><span class="line">  <span class="keyword">return</span> &#123;x - rhs.x, y - rhs.y&#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">double</span> Vec::<span class="keyword">operator</span>*(Vec <span class="type">const</span>&amp; rhs)<span class="type">const</span>&#123;</span><br><span class="line">  <span class="keyword">return</span> x * rhs.x + y * rhs.y;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">double</span> <span class="title">Vec::norm</span><span class="params">()</span><span class="type">const</span></span>&#123;</span><br><span class="line">  <span class="keyword">return</span> std::<span class="built_in">sqrt</span>(x * x + y * y);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// pyb/src/pyb.cc</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;pybind11/pybind11.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;vec.hxx&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">namespace</span> py = pybind11;</span><br><span class="line"></span><br><span class="line"><span class="built_in">PYBIND11_MODULE</span>(pyb, m)&#123;</span><br><span class="line">  py::<span class="built_in">class_</span>&lt;Vec&gt;(m, <span class="string">&quot;Vec&quot;</span>)</span><br><span class="line">    .<span class="built_in">def</span>(py::<span class="built_in">init</span>&lt;<span class="type">double</span>, <span class="type">double</span>&gt;())</span><br><span class="line">    .<span class="built_in">def</span>(py::<span class="built_in">init</span>&lt;Vec <span class="type">const</span>&amp;&gt;())</span><br><span class="line">    .<span class="built_in">def</span>(<span class="string">&quot;add&quot;</span>, &amp;Vec::<span class="keyword">operator</span>+)</span><br><span class="line">    .<span class="built_in">def</span>(<span class="string">&quot;sub&quot;</span>, &amp;Vec::<span class="keyword">operator</span>-)</span><br><span class="line">    .<span class="built_in">def</span>(<span class="string">&quot;dot&quot;</span>, &amp;Vec::<span class="keyword">operator</span>*)</span><br><span class="line">    .<span class="built_in">def</span>(<span class="string">&quot;norm&quot;</span>, &amp;Vec::norm);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure> 这个Vec类就不用写移动构造呀什么的了吧。重点在最后一个绑定的文件，这里用了<code>py::class_&lt;CLASS&gt;()</code>来绑定cxx中的一个类，显然这是一个模板。</p>
+<p>注意到后面的链式调用，<code>py::class_&lt;&gt;()</code>的返回值是一个类对象，后面的链式调用中被调用的都是它的<strong>成员函数</strong>，分别绑定了两个构造函数和四个成员函数。这儿为了简便就先不考虑如何实现python里<code>__add__</code>之类的方法了。成员函数的绑定和之前讲的绑定函数是几乎一样的，值得注意的是构造函数的绑定，使用了<code>py::init&lt;ARGS&gt;()</code>。</p>
+<p>同时，cmklist也要更改：<br />
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">cmake_minimum_required</span>(VERSION <span class="number">3.15</span>)</span><br><span class="line"><span class="keyword">project</span>(</span><br><span class="line">  pyb</span><br><span class="line">  LANGUAGES CXX</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">add_subdirectory</span>(pybind11)</span><br><span class="line">pybind11_add_module(pyb SHARED src/pyb.cc src/vec.cc)</span><br><span class="line"><span class="keyword">target_include_directories</span>(pyb PRIVATE <span class="keyword">include</span>)</span><br></pre></td></tr></table></figure> 新加入的没有和pybind相关的，就不过多赘述了。</p>
+<p>最后写一个py脚本测试一下效果：<br />
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line">sys.path.append(<span class="string">&quot;./build&quot;</span>)</span><br><span class="line"><span class="keyword">import</span> pyb</span><br><span class="line"></span><br><span class="line">a = pyb.Vec(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">b = pyb.Vec(<span class="number">3</span>, <span class="number">4</span>)</span><br><span class="line">c = a.add(b)</span><br><span class="line"><span class="built_in">print</span>(c)</span><br><span class="line"><span class="built_in">print</span>(a.dot(b))</span><br><span class="line"><span class="built_in">print</span>(a.norm())</span><br></pre></td></tr></table></figure> 输出是这样的：<br />
+<img src="/pic/pybind/4.png" alt="img" /> 可以看到除了有个东西有点怪怪的外，其他的都如同预期。</p>
+<p>此外，类中方法使用默认实参的方式和普通函数一模一样。</p>
+<h3 id="repr__"><code>__repr__</code></h3>
+<p>上面这个例子工作的不错，除了打印c的时候出现了家人们刚学python时可能遇见的一个问题。在python里我们靠<code>__repr__</code>这个方法来控制打印对象时的输出，那么在pybind11里面我们可不可以也搞同样一出呢？这当然也是可以的。</p>
+<p>先给cxx加上输出函数吧，这里是一个出问题的地方，第一想法是重载<code>&lt;&lt;</code>运算符，也就是在<code>vec.hxx</code>声明一个Vec类的友元函数<code>std::ostream&amp; (std::ostream&amp;, Vec const&amp;)</code>，然而我们在cxx中为了能连续使用流返回了<code>std::ostream&amp;</code>，可在python哪里知道<code>std::ostream&amp;</code>是什么东西。这个东西编译是可以通过的，报错会出现在python脚本运行时，它还会友善的问你是不是忘记添加pybind11对stl的支持了。这说明这个麻烦是可以解决的，但是现在为时过早。</p>
+<p>那直接用<code>void print(void)</code>这样的成员函数通过输出流打印捏？遗憾的是，会在运行时出现段错误。</p>
+<p>其实python中的<code>__repr__</code>方法需要的只是一个字符串罢了，所以我们仅仅需要把要打印的东西作为字符串返回就足够了：<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// include/vec.hxx</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Vec</span>&#123;</span><br><span class="line">  <span class="comment">//...</span></span><br><span class="line">  <span class="function">std::string <span class="title">print</span><span class="params">(<span class="type">void</span>)</span><span class="type">const</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// src/vec.cc</span></span><br><span class="line"><span class="comment">//...</span></span><br><span class="line"><span class="function">std::string <span class="title">Vec::print</span><span class="params">(<span class="type">void</span>)</span><span class="type">const</span></span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="string">&quot;(&quot;</span> + std::<span class="built_in">to_string</span>(x) +  <span class="string">&quot;, &quot;</span> + std::<span class="built_in">to_string</span>(y) + <span class="string">&quot;)&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// src/pyb.cc</span></span><br><span class="line"><span class="comment">//...</span></span><br><span class="line">  py::<span class="built_in">class_</span>&lt;Vec&gt;(m, <span class="string">&quot;Vec&quot;</span>)</span><br><span class="line">    .<span class="built_in">def</span>(py::<span class="built_in">init</span>&lt;<span class="type">double</span>, <span class="type">double</span>&gt;())</span><br><span class="line">    .<span class="built_in">def</span>(py::<span class="built_in">init</span>&lt;Vec <span class="type">const</span>&amp;&gt;())</span><br><span class="line">    .<span class="built_in">def</span>(<span class="string">&quot;add&quot;</span>, &amp;Vec::<span class="keyword">operator</span>+)</span><br><span class="line">    .<span class="built_in">def</span>(<span class="string">&quot;sub&quot;</span>, &amp;Vec::<span class="keyword">operator</span>-)</span><br><span class="line">    .<span class="built_in">def</span>(<span class="string">&quot;dot&quot;</span>, &amp;Vec::<span class="keyword">operator</span>*)</span><br><span class="line">    .<span class="built_in">def</span>(<span class="string">&quot;norm&quot;</span>, &amp;Vec::norm)</span><br><span class="line">    .<span class="built_in">def</span>(<span class="string">&quot;__repr__&quot;</span>, &amp;Vec::print);</span><br></pre></td></tr></table></figure> 可以看到，为Vec类添加<code>__repr__</code>方法就和添加一般的方法一样。</p>
+<p>那么想也知道，<code>__add__</code>, <code>__mul__</code>之类的也是一样的了，甚至<code>__call__</code>也行。所以把成员函数全改成魔法方法：<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">PYBIND11_MODULE</span>(pyb, m)&#123;</span><br><span class="line">  py::<span class="built_in">class_</span>&lt;Vec&gt;(m, <span class="string">&quot;Vec&quot;</span>)</span><br><span class="line">    .<span class="built_in">def</span>(py::<span class="built_in">init</span>&lt;<span class="type">double</span>, <span class="type">double</span>&gt;())</span><br><span class="line">    .<span class="built_in">def</span>(py::<span class="built_in">init</span>&lt;Vec <span class="type">const</span>&amp;&gt;())</span><br><span class="line">    .<span class="built_in">def</span>(<span class="string">&quot;__add__&quot;</span>, &amp;Vec::<span class="keyword">operator</span>+)</span><br><span class="line">    .<span class="built_in">def</span>(<span class="string">&quot;__sub__&quot;</span>, &amp;Vec::<span class="keyword">operator</span>-)</span><br><span class="line">    .<span class="built_in">def</span>(<span class="string">&quot;__mul__&quot;</span>, &amp;Vec::<span class="keyword">operator</span>*)</span><br><span class="line">    .<span class="built_in">def</span>(<span class="string">&quot;norm&quot;</span>, &amp;Vec::norm)</span><br><span class="line">    .<span class="built_in">def</span>(<span class="string">&quot;__repr__&quot;</span>, &amp;Vec::print);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure> 然后在测试用的python脚本里把<code>.add()</code>, <code>.dot()</code>全给它换成<code>+</code>, <code>*</code>，正常工作。那个<code>&lt;object at xxxxxxx&gt;</code>也被我们设置的合适的输出取代了。</p>
+<p>（文档中，还举了一个绑定匿名函数作为<code>__repr__</code>的做法，但其实有点脱裤子放屁的感觉。实际上lambda函数和我们之前绑定的函数，形式上我们传给<code>PYBIND11_MODULE</code>里面的都是函数指针，lambda也没有什么搞特殊的。）</p>
+<h3 id="提供对字段的访问">提供对字段的访问</h3>
+<p>我们在cxx中新加一个这样的类：<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span>&#123;</span><br><span class="line">  <span class="type">int</span> age&#123;<span class="number">18</span>&#125;;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="type">double</span> height&#123;<span class="number">160</span>&#125;;</span><br><span class="line">  <span class="type">double</span> weight&#123;<span class="number">50</span>&#125;;</span><br><span class="line">  <span class="type">const</span> <span class="type">int</span> IQ&#123;<span class="number">50</span>&#125;;</span><br><span class="line">  <span class="built_in">Person</span>(<span class="type">int</span> _age, <span class="type">double</span> _height, <span class="type">double</span> _weight):</span><br><span class="line">  <span class="built_in">age</span>(_age), <span class="built_in">height</span>(_height), <span class="built_in">weight</span>(_weight)&#123;&#125;</span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">get_age</span><span class="params">(<span class="type">void</span>)</span><span class="type">const</span></span>&#123;<span class="keyword">return</span> age;&#125;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">set_age</span><span class="params">(<span class="type">int</span> _age)</span></span>&#123;age = _age;&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure> 这是一个 人 类，它有两个公有字段身高和体重，还有一个小秘密就是它的年龄。接着我们给它绑定到python中去。 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">py::class_&lt;Person&gt;(m, <span class="string">&quot;Person&quot;</span>)</span><br><span class="line">  .<span class="keyword">def</span>(py::init&lt;<span class="built_in">int</span>, double, double&gt;())</span><br><span class="line">  .<span class="keyword">def</span>(<span class="string">&quot;get_age&quot;</span>, &amp;Person::get_age)</span><br><span class="line">  .<span class="keyword">def</span>(<span class="string">&quot;set_age&quot;</span>, &amp;Person::set_age);</span><br></pre></td></tr></table></figure> 测试代码如下，我们有个八岁的小男孩小明，天生神力，身高一米八，体重两百斤, 就是IQ有点那啥，但瑕不掩瑜。 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line">sys.path.append(<span class="string">&quot;./build&quot;</span>)</span><br><span class="line"><span class="keyword">import</span> pyb</span><br><span class="line"></span><br><span class="line">XiaoMing = pyb.Person(<span class="number">8</span>, <span class="number">180</span>, <span class="number">100</span>)</span><br><span class="line"><span class="built_in">print</span>(XiaoMing.height)</span><br></pre></td></tr></table></figure> 令人遗憾的是，小明似乎得了一种病，叫做<code>AttributeError</code>。 <img src="/pic/pybind/5.png" alt="img" /> python告诉我们，小明没有身高。小明急了，他破防了。即便他的身高这么傲人，即便他的身高在cxx里是公有字段，可对python是不可见的。</p>
+<p>我们已经会绑定——好吧，其实我更习惯叫注册——我们已经能够注册普通函数与成员函数，那么成员变量应该如何注册到库里呢？这个问题比较复杂，毕竟cxx本身就很复杂，接下来分公有变量、公有常量、私有变量来讨论。</p>
+<p>以下提到的函数都是pybind11中<code>class_</code>类的<strong>成员函数</strong>。</p>
+<h4 id="公有成员变量">公有成员变量</h4>
+<p>pybind11提供了函数<code>class_::def_readwrite(char const*, ababaType)</code>来绑定一个可读写的字段。这里<code>ababaType</code>很显然是我在瞎写，但更显然的是它代表绑定的类的成员变量，第一个参数则是它在python中的名称。</p>
+<h4 id="公有常量">公有常量</h4>
+<p>和<code>class_::def_readwrite()</code>类似，只是函数签名变成了<code>class_::def_readonly()</code>，用于绑定只读字段。</p>
+<h4 id="私有成员变量">私有成员变量</h4>
+<p>一刻也没有为小明失去的身高哀悼，赶到战场的是即便在cxx中也看不到的私有成员变量。遗憾的是，pybind11也是cxx写的，它不可能绕开cxx的语言限制去访问某个类的私有字段。因此，<code>getter/setter</code>方法依旧是必须的。但pybind11提供了函数将其转换为python中简单直接的属性赋值，这个函数就是<code>class_::def_property()</code>，和前面两个不同的是它接受三个参数，第一个依旧是它在python中的名字，后面两个则分别是它的<code>getter</code>和<code>setter</code>方法。对于仅仅想要外界可读，但不想要被外界修改的私有变量（其实就是只有<code>getter</code>没有<code>setter</code>的私有变量），只需要传一个<code>nullptr</code>给<code>setter</code>就可以了。</p>
+<h4 id="静态变量">静态变量</h4>
+<p>函数<code>def_readwrite()</code>,<code>def_readonly()</code>和<code>def_property()</code>都有对应的加上了<code>_static</code>后缀的函数用于绑定对应静态变量，这个后面再说。</p>
+<h4 id="完全体小明">完全体小明</h4>
+<p>根据前面提到的几种函数，我们现在可以把绑定<code>Person</code>类的代码完善一下了：<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">py::<span class="built_in">class_</span>&lt;Person&gt;(m, <span class="string">&quot;Person&quot;</span>)</span><br><span class="line">  .<span class="built_in">def</span>(py::<span class="built_in">init</span>&lt;<span class="type">int</span>, <span class="type">double</span>, <span class="type">double</span>&gt;())</span><br><span class="line">  .<span class="built_in">def_readwrite</span>(<span class="string">&quot;height&quot;</span>, &amp;Person::height)</span><br><span class="line">  .<span class="built_in">def_readwrite</span>(<span class="string">&quot;weight&quot;</span>, &amp;Person::weight)</span><br><span class="line">  .<span class="built_in">def_readonly</span>(<span class="string">&quot;IQ&quot;</span>, &amp;Person::IQ)</span><br><span class="line">  .<span class="built_in">def_property</span>(<span class="string">&quot;age&quot;</span>, &amp;Person::get_age, &amp;Person::set_age);</span><br></pre></td></tr></table></figure> 这时小明的身高体重年龄IQ都可以在python里直接用<code>.</code>运算符访问了。但是cxx里不能修改的，比如小明的IQ，还是不能修改，他注定是个50智商的智者了。</p>
+<h3 id="动态增加属性">动态增加属性</h3>
+<p>python中，可以动态的向一个类中增添属性：<br />
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span>:</span><br><span class="line">  name = <span class="string">&quot;XiaoMing&quot;</span></span><br><span class="line"></span><br><span class="line">p = Person</span><br><span class="line">p.age = <span class="number">8</span></span><br></pre></td></tr></table></figure> 为了在cxx提供的API中也实现这一特性，需要在<code>py::class_</code>类的构造函数中加上<code>py::dynamic_attr()</code>:<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">py::<span class="built_in">class_</span>&lt;Person&gt;(m, <span class="string">&quot;Person&quot;</span>, py::<span class="built_in">dynamic_attr</span>())</span><br><span class="line">  .<span class="built_in">def</span>(py::init&lt;&gt;())</span><br><span class="line">  <span class="comment">//...</span></span><br></pre></td></tr></table></figure> 这样在python中就可以同原生类一样动态地增加修改属性了，同时这样构造出来的类是存在<code>__dict__</code>方法的，至于这个方法是做什么的，本文并非python教学。</p>
+<p>毫无疑问这些动态的玩意会增大运行时开销，也需要gc处理可能的循环引用。在pybind11的官方文档中，他们声称不具有动态特性的cxx类效率是高于原生python类的，而加入动态特性后，二者的开销持平。因此如果他们没有吹牛皮的话，至少我们不会在其中获得比原生python更糟糕的性能。</p>
+<h3 id="继承">继承</h3>
+<p>假设我们现在在cxx中有这样两个类：<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Base</span>&#123;</span><br><span class="line">  <span class="type">int</span> member;</span><br><span class="line">  <span class="built_in">Base</span>(<span class="type">int</span> _member): <span class="built_in">member</span>(_member)&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Derived</span>: Base&#123;</span><br><span class="line">  <span class="built_in">Derived</span>(<span class="type">int</span> _member): <span class="built_in">Base</span>(_member)&#123;&#125;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">func</span><span class="params">(<span class="type">void</span>)</span></span>&#123;&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure> 在pybind11中绑定继承关系有两种方法。</p>
+<h4 id="将超类作为额外的模板参数">将超类作为额外的模板参数</h4>
+<p>对超类<code>Base</code>，还是老样子绑定：<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">py::<span class="built_in">class_</span>&lt;Base&gt;(m, <span class="string">&quot;Base&quot;</span>)</span><br><span class="line">  .<span class="built_in">def</span>(py::<span class="built_in">init</span>&lt;<span class="type">int</span>&gt;())</span><br><span class="line">  .<span class="built_in">def_readwrite</span>(<span class="string">&quot;member&quot;</span>, &amp;Base::member);</span><br></pre></td></tr></table></figure> 对子类<code>Derived</code>，在<code>py::class_</code>构造函数的模板参数中额外指明它的超类：<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">py::<span class="built_in">class_</span>&lt;Derived, Base&gt;(m, <span class="string">&quot;Derived&quot;</span>)</span><br><span class="line">  .<span class="built_in">def</span>(py::<span class="built_in">init</span>&lt;<span class="type">int</span>&gt;())</span><br><span class="line">  .<span class="built_in">def</span>(<span class="string">&quot;func&quot;</span>, &amp;Derived::func);</span><br></pre></td></tr></table></figure></p>
+<h4 id="将超类作为子类构造函数的一个参数">将超类作为子类构造函数的一个参数</h4>
+<p>这个方法有点复杂，首先要重申以下<code>py::class_()</code>创建的是一个<code>class_</code>类。然而回顾前面的例子就可以发现，我们在创建这个类的实例的时候，是没有给它名字的，所以显得很怪里怪气的。这里暂时也不去讨论这个创建出来的右值内部到底做了什么，如果我们给它一个名字，可不可以呢？当然是没问题的。<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">py::class_&lt;Base&gt; <span class="title">base</span><span class="params">(m, <span class="string">&quot;Base&quot;</span>)</span></span>;</span><br><span class="line">base.<span class="built_in">def</span>(py::<span class="built_in">init</span>&lt;<span class="type">int</span>&gt;())</span><br><span class="line">  .<span class="built_in">def_readwrite</span>(...);</span><br></pre></td></tr></table></figure> 这样我们创建了一个左值，后面的链式调用就可以用<code>base</code>去调了。但其实这样是麻烦了的，我们还得费劲为它想个名字。但在继承的时候，这个名字便能派上用场了。<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">py::<span class="built_in">class_</span>&lt;Derived&gt;(m, <span class="string">&quot;Derived&quot;</span>, base)</span><br><span class="line">  .<span class="built_in">def</span>(...)</span><br><span class="line">  <span class="comment">// ...</span></span><br></pre></td></tr></table></figure> 把<code>base</code>作为子类构造函数的第三个参数传进去，我们也得到了具有继承关系的绑定。</p>
+<h3 id="多态">多态</h3>
+<p>继续看上面提到的<code>Base</code>和<code>Derived</code>的例子，如果我们创建一个指向<code>Base</code>的指针并让他指向一个<code>Derived</code>的实例，这样的向上转型肯定是可以的。然而，做不到使用这个指针调用<code>Derived</code>的成员函数<code>Derived::func()</code>，因为它是非虚的。<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Derived <span class="title">d</span><span class="params">(<span class="number">1</span>)</span></span>;</span><br><span class="line">Base* p = &amp;d;</span><br><span class="line">p-&gt;<span class="built_in">func</span>(); <span class="comment">// raise an error</span></span><br></pre></td></tr></table></figure> 放在python里同样做不到，我们给前面创建的<code>pyb</code>模块添加一个这样的工厂函数：<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ...</span></span><br><span class="line">m.<span class="built_in">def</span>(<span class="string">&quot;give_me_a_base&quot;</span>, []()&#123;<span class="keyword">return</span> std::<span class="built_in">unique_ptr</span>&lt;Base&gt;(<span class="keyword">new</span> <span class="built_in">Derived</span>(<span class="number">1</span>));&#125;);</span><br></pre></td></tr></table></figure> 在python中：<br />
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">p = pyb.give_me_a_base()</span><br><span class="line"><span class="built_in">type</span>(p) <span class="comment"># Base</span></span><br><span class="line">p.func() <span class="comment"># raise an AttributeError</span></span><br></pre></td></tr></table></figure> cxx中，我们可以为<code>Base</code>类添加一个虚函数<code>virtual void func(void)&#123;&#125;</code>来实现多态，或者直接把<code>Base</code>弄成一个抽象类。然后在pybind中用同样的方式绑定（不需要为Base绑定它的<code>func()</code>成员函数），就可以在python中实现自动地向下转型了。</p>
+<p>然而，文档中还出现了一种更吊诡的方法：只需要为<code>Base</code>添加一个任意的虚函数，比如说虚的析构函数，这时<code>Derived</code>中的<code>func()</code>甚至和<code>Base</code>没有任何关系，可python中依然可以实现自动地向下转型。具体操作如下：<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Base</span>&#123;</span><br><span class="line">  <span class="type">int</span> member;</span><br><span class="line">  <span class="built_in">Base</span>(<span class="type">int</span> _member): <span class="built_in">member</span>(_member)&#123;&#125;</span><br><span class="line">  <span class="keyword">virtual</span> ~<span class="built_in">Base</span>() = <span class="keyword">default</span>;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Derived</span>: Base&#123;</span><br><span class="line">  <span class="built_in">Derived</span>(<span class="type">int</span> _member): <span class="built_in">Base</span>(_member)&#123;&#125;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">func</span><span class="params">(<span class="type">void</span>)</span></span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">// binding part has no difference</span></span><br></pre></td></tr></table></figure> 接着就可以在python中正常的向下转型了。个人水平有限，不是很能理解这样做的意义何在。如果实际应用中需要继承，要么就把<code>func()</code>作为虚函数，要么就不会出现这样的多态。而且在非平凡析构甚至所有的继承例子中，都会把超类的析构函数声明成虚的，文档给出的例子中人为添加一个虚析构函数的做法有点莫名其妙。可以选择把<code>Base::func()</code>声明为虚函数然后不做任何事，或者直接把它声明为纯虚的并不在pybind中绑定作为抽象类的<code>Base</code>。这样将<code>Derived</code>给up-casting成<code>Base</code>，再用心险恶地调用它的非重写成员函数实在是有些让人摸不着头脑。</p>
+<h3 id="结语">结语</h3>
+<p>pybind11中绑定类的操作还是相当符合直觉且简单的，当然，还有静态函数、要干更多活的析构函数、虚函数与继承、多继承（这位更是重量级）等一大堆面向对象相关的内容，这个留到以后有时间再说吧。不过可以发现，这些内容在pybind11中都是非常顺利成章的，很容易想到。比如运算符重载，只要清楚cxx中调用重载的运算符<code>a + b</code>就相当于在a上调用<code>a.operator+(b)</code>，那么就很容易在pybind11中绑定重载了的运算符。同样，只要知道python中自定义的<code>a + b</code>等同于<code>a.__add__(b)</code>，也很容易为其实现cxx的接口，更进一步如前面提及的<code>__repr__</code>，还有来不及讲的<code>__str__</code>,<code>__call__</code>甚至<code>__getattr__</code>等也是举一反三的道理。</p>
+<p>除了面向对象，后面还有重载、指针以及python中<code>func(*args, **kwargs)</code>的接口实现，就等后面讲了。</p>
+<p>不过说真的，<code>*args, **kwargs</code>是真的太逆天了。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cxx/" rel="tag"># cxx</a>
+              <a href="/tags/python/" rel="tag"># python</a>
+              <a href="/tags/pybind/" rel="tag"># pybind</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/12/22/pybind11%E4%BD%BF%E7%94%A8/" rel="prev" title="pybind11使用">
+      <i class="fa fa-chevron-left"></i> pybind11使用
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/12/25/pybind11%E7%B3%BB%E5%88%97%E4%B9%8B%E4%B8%89/" rel="next" title="pybind11系列之三">
+      pybind11系列之三 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%91%E5%AE%9Acxx%E7%9A%84%E7%B1%BB%E6%88%96%E7%BB%93%E6%9E%84%E4%BD%93"><span class="nav-number">1.</span> <span class="nav-text">绑定cxx的类或结构体</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#repr__"><span class="nav-number">2.</span> <span class="nav-text">__repr__</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8F%90%E4%BE%9B%E5%AF%B9%E5%AD%97%E6%AE%B5%E7%9A%84%E8%AE%BF%E9%97%AE"><span class="nav-number">3.</span> <span class="nav-text">提供对字段的访问</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%AC%E6%9C%89%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F"><span class="nav-number">3.1.</span> <span class="nav-text">公有成员变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%85%AC%E6%9C%89%E5%B8%B8%E9%87%8F"><span class="nav-number">3.2.</span> <span class="nav-text">公有常量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A7%81%E6%9C%89%E6%88%90%E5%91%98%E5%8F%98%E9%87%8F"><span class="nav-number">3.3.</span> <span class="nav-text">私有成员变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%8F%98%E9%87%8F"><span class="nav-number">3.4.</span> <span class="nav-text">静态变量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%8C%E5%85%A8%E4%BD%93%E5%B0%8F%E6%98%8E"><span class="nav-number">3.5.</span> <span class="nav-text">完全体小明</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E5%A2%9E%E5%8A%A0%E5%B1%9E%E6%80%A7"><span class="nav-number">4.</span> <span class="nav-text">动态增加属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%A7%E6%89%BF"><span class="nav-number">5.</span> <span class="nav-text">继承</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%86%E8%B6%85%E7%B1%BB%E4%BD%9C%E4%B8%BA%E9%A2%9D%E5%A4%96%E7%9A%84%E6%A8%A1%E6%9D%BF%E5%8F%82%E6%95%B0"><span class="nav-number">5.1.</span> <span class="nav-text">将超类作为额外的模板参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%86%E8%B6%85%E7%B1%BB%E4%BD%9C%E4%B8%BA%E5%AD%90%E7%B1%BB%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0%E7%9A%84%E4%B8%80%E4%B8%AA%E5%8F%82%E6%95%B0"><span class="nav-number">5.2.</span> <span class="nav-text">将超类作为子类构造函数的一个参数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E6%80%81"><span class="nav-number">6.</span> <span class="nav-text">多态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BB%93%E8%AF%AD"><span class="nav-number">7.</span> <span class="nav-text">结语</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="sazareame/aisis"
+      src="/images/lika.jpg">
+  <p class="site-author-name" itemprop="name">sazareame/aisis</p>
+  <div class="site-description" itemprop="description">中國科學技術大學</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">sazareame/aisis</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

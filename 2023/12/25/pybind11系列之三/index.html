@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.0.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="mask-icon" href="/images/safari-pinned-tab.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Anonymous Pro:300,300italic,400,400italic,700,700italic|Courier New:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"sazareame.gitbub.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":false,"style":"mac"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":true},"bookmark":{"enable":true,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="书接上回，依然是我们的 人 类： 1234567891011class Person&#123;  int age&#123;18&#125;;public:  double height&#123;160&#125;;  double weight&#123;50&#125;;  const int IQ&#123;50&#125;;  Person(int _age, double _heig">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pybind11系列之三">
+<meta property="og:url" content="https://sazareame.gitbub.io/2023/12/25/pybind11%E7%B3%BB%E5%88%97%E4%B9%8B%E4%B8%89/index.html">
+<meta property="og:site_name" content="人生何處不相逢？">
+<meta property="og:description" content="书接上回，依然是我们的 人 类： 1234567891011class Person&#123;  int age&#123;18&#125;;public:  double height&#123;160&#125;;  double weight&#123;50&#125;;  const int IQ&#123;50&#125;;  Person(int _age, double _heig">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2023-12-25T01:44:55.000Z">
+<meta property="article:modified_time" content="2024-01-05T13:36:34.437Z">
+<meta property="article:author" content="sazareame&#x2F;aisis">
+<meta property="article:tag" content="cxx">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="pybind">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://sazareame.gitbub.io/2023/12/25/pybind11%E7%B3%BB%E5%88%97%E4%B9%8B%E4%B8%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>pybind11系列之三 | 人生何處不相逢？</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">人生何處不相逢？</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">sazareame</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/sazareame" class="github-corner" title="ciallo" aria-label="ciallo" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://sazareame.gitbub.io/2023/12/25/pybind11%E7%B3%BB%E5%88%97%E4%B9%8B%E4%B8%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/lika.jpg">
+      <meta itemprop="name" content="sazareame/aisis">
+      <meta itemprop="description" content="中國科學技術大學">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="人生何處不相逢？">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          pybind11系列之三
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2023-12-25 09:44:55" itemprop="dateCreated datePublished" datetime="2023-12-25T09:44:55+08:00">2023-12-25</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2024-01-05 21:36:34" itemprop="dateModified" datetime="2024-01-05T21:36:34+08:00">2024-01-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>书接上回，依然是我们的 人 类：<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span>&#123;</span><br><span class="line">  <span class="type">int</span> age&#123;<span class="number">18</span>&#125;;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="type">double</span> height&#123;<span class="number">160</span>&#125;;</span><br><span class="line">  <span class="type">double</span> weight&#123;<span class="number">50</span>&#125;;</span><br><span class="line">  <span class="type">const</span> <span class="type">int</span> IQ&#123;<span class="number">50</span>&#125;;</span><br><span class="line">  <span class="built_in">Person</span>(<span class="type">int</span> _age, <span class="type">double</span> _height, <span class="type">double</span> _weight):</span><br><span class="line">  <span class="built_in">age</span>(_age), <span class="built_in">height</span>(_height), <span class="built_in">weight</span>(_weight)&#123;&#125;</span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">get_age</span><span class="params">(<span class="type">void</span>)</span><span class="type">const</span></span>&#123;<span class="keyword">return</span> age;&#125;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">set_age</span><span class="params">(<span class="type">int</span> _age)</span></span>&#123;age = _age;&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+<h3 id="方法重载">方法重载</h3>
+<p>我们把<code>Person::set_age()</code>方法删掉，替换成一个统一的<code>Person::set()</code>方法，它可以同时设置盛高体重或者年龄：<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Person</span>&#123;</span><br><span class="line">  <span class="type">int</span> age&#123;<span class="number">18</span>&#125;;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="type">double</span> height&#123;<span class="number">160</span>&#125;;</span><br><span class="line">  <span class="type">double</span> weight&#123;<span class="number">50</span>&#125;;</span><br><span class="line">  <span class="type">const</span> <span class="type">int</span> IQ&#123;<span class="number">50</span>&#125;;</span><br><span class="line">  <span class="built_in">Person</span>(<span class="type">int</span> _age, <span class="type">double</span> _height, <span class="type">double</span> _weight):</span><br><span class="line">  <span class="built_in">age</span>(_age), <span class="built_in">height</span>(_height), <span class="built_in">weight</span>(_weight)&#123;&#125;</span><br><span class="line">  <span class="function"><span class="type">int</span> <span class="title">get_age</span><span class="params">(<span class="type">void</span>)</span><span class="type">const</span></span>&#123;<span class="keyword">return</span> age;&#125;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">set</span><span class="params">(<span class="type">int</span> _age)</span></span>&#123;age = _age;&#125;</span><br><span class="line">  <span class="function"><span class="type">void</span> <span class="title">set</span><span class="params">(<span class="type">double</span> _height, <span class="type">double</span> _weight)</span></span>&#123;height = _height; weight = _weight;&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure> 对于这样一个重载的方法，pybind11提供了如下的绑定方法：<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// omit ohter member functions of py::class_</span></span><br><span class="line">py::<span class="built_in">class_</span>&lt;Person&gt;(m, <span class="string">&quot;Person&quot;</span>)</span><br><span class="line">  .<span class="built_in">def</span>(<span class="string">&quot;set&quot;</span>, <span class="built_in">static_cast</span>&lt;<span class="built_in">void</span> (Person::*)(<span class="type">int</span>)&gt;(&amp;Person::set)) <span class="comment">// Person::set(int)</span></span><br><span class="line">  .<span class="built_in">def</span>(<span class="string">&quot;set&quot;</span>, <span class="built_in">static_cast</span>&lt;<span class="built_in">void</span> (Person::*)(<span class="type">double</span>, <span class="type">double</span>)&gt;(&amp;Person::set)) <span class="comment">// Person::set(double, double)</span></span><br></pre></td></tr></table></figure> 这里在<code>py::class_::def()</code>函数中，利用<code>static_cast</code>将<code>&amp;Person::set</code>转换为了对应重载形式的函数指针，至于模板参数，也就是函数指针的类型，为什么是这个样子的，本文也不是cxx教学。</p>
+<p>如果编译器有幸支持cxx14（大部分应该都没问题），那么写法还可以改进为<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">py::<span class="built_in">class_</span>&lt;Person&gt;(m, <span class="string">&quot;Person&quot;</span>)</span><br><span class="line">  .<span class="built_in">def</span>(<span class="string">&quot;set&quot;</span>, py::<span class="built_in">overload_cast</span>&lt;<span class="type">int</span>&gt;(&amp;Person::set))</span><br><span class="line">  .<span class="built_in">def</span>(<span class="string">&quot;set&quot;</span>, py::<span class="built_in">overload_cast</span>&lt;<span class="type">double</span>, <span class="type">double</span>&gt;(&amp;Person::set))</span><br></pre></td></tr></table></figure> 这就省去了强制转换成函数指针的那种麻烦写法。但如果你真的不幸没有cxx14，却又不想写函数指针，那贴心的pybind11还给你提供了一种写法：<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span>... Args&gt;</span><br><span class="line"><span class="keyword">using</span> overload_cast = py::detail::overload_cast_impl&lt;Args...&gt;</span><br><span class="line"></span><br><span class="line">py::<span class="built_in">class_</span>&lt;Person&gt;(m, <span class="string">&quot;Person&quot;</span>)</span><br><span class="line">  .<span class="built_in">def</span>(<span class="string">&quot;set&quot;</span>, <span class="built_in">overload_cast</span>&lt;<span class="type">int</span>&gt;()(&amp;Person::set))</span><br><span class="line">  .<span class="built_in">def</span>(<span class="string">&quot;set&quot;</span>, <span class="built_in">overload_cast</span>&lt;<span class="type">double</span>, <span class="type">double</span>&gt;()(&amp;Person::set))</span><br></pre></td></tr></table></figure> 要注意这里<code>overload_cast&lt;&gt;</code>后面是有调用运算符的。</p>
+<p>对于<code>const</code>重载，只需要在参数里加上<code>py::const_</code>就行了，这里假设我们还有一个<code>set(int)const</code>的方法（一般不可能有）。<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">py::<span class="built_in">class_</span>&lt;Person&gt;(m, <span class="string">&quot;Person&quot;</span>)</span><br><span class="line">  .<span class="built_in">def</span>(<span class="string">&quot;set&quot;</span>, py::<span class="built_in">overload_cast</span>&lt;<span class="type">int</span>&gt;(&amp;Person::set))</span><br><span class="line">  .<span class="built_in">def</span>(<span class="string">&quot;set&quot;</span>, py::<span class="built_in">overload_cast</span>&lt;<span class="type">int</span>&gt;(&amp;Person::set, py::const_))</span><br><span class="line">  .<span class="built_in">def</span>(<span class="string">&quot;set&quot;</span>, py::<span class="built_in">overload_cast</span>&lt;<span class="type">double</span>, <span class="type">double</span>&gt;(&amp;Person::set))</span><br></pre></td></tr></table></figure></p>
+<h3 id="类的内部类型">类的内部类型</h3>
+<p>我已经开始偷懒了，直接照抄文档上提供的例子。<br />
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Pet</span> &#123;</span><br><span class="line">    <span class="keyword">enum</span> <span class="title class_">Kind</span> &#123;</span><br><span class="line">        Dog = <span class="number">0</span>,</span><br><span class="line">        Cat</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">Attributes</span> &#123;</span><br><span class="line">        <span class="type">float</span> age = <span class="number">0</span>;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">Pet</span>(<span class="type">const</span> std::string &amp;name, Kind type) : <span class="built_in">name</span>(name), <span class="built_in">type</span>(type) &#123; &#125;</span><br><span class="line"></span><br><span class="line">    std::string name;</span><br><span class="line">    Kind type;</span><br><span class="line">    Attributes attr;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">```cpp</span><br><span class="line">py::class_&lt;Pet&gt; pet(m, &quot;Pet&quot;);</span><br><span class="line"></span><br><span class="line">pet.def(py::init&lt;const std::string &amp;, Pet::Kind&gt;())</span><br><span class="line">    .def_readwrite(&quot;name&quot;, &amp;Pet::name)</span><br><span class="line">    .def_readwrite(&quot;type&quot;, &amp;Pet::type)</span><br><span class="line">    .def_readwrite(&quot;attr&quot;, &amp;Pet::attr);</span><br><span class="line"></span><br><span class="line">py::enum_&lt;Pet::Kind&gt;(pet, &quot;Kind&quot;)</span><br><span class="line">    .value(&quot;Dog&quot;, Pet::Kind::Dog)</span><br><span class="line">    .value(&quot;Cat&quot;, Pet::Kind::Cat)</span><br><span class="line">    .export_values();</span><br><span class="line"></span><br><span class="line">py::class_&lt;Pet::Attributes&gt;(pet, &quot;Attributes&quot;)</span><br><span class="line">    .def(py::init&lt;&gt;())</span><br><span class="line">    .def_readwrite(&quot;age&quot;, &amp;Pet::Attributes::age);</span><br></pre></td></tr></table></figure> 这里，和前面讲的继承很像，我们给绑定的<code>Pet</code>类提供了名称。但是要注意到在后面使用<code>py::enum_</code>与<code>py::class_</code>时，<strong>继承</strong>是将<code>pet</code>作为第三个参数传入，而这里却用<code>pet</code>代替了原本作为第一个参数的<code>m</code>。这个<code>m</code>是什么？前面那一堆代码里，我都省略了包裹在外的<code>PYBIND11_MOUDULE(pyb, m)</code>，<code>m</code>就是在这里被创建的，这个宏创建了一个名为<code>pyb</code>的模块（python导入名），而m就是这个模块的作用域。后面<code>py::class_</code>把<code>m</code>作为第一个参数，就是指明绑定的这个cxx类是在<code>m</code>这个域内的。同理，现在<code>Kind</code>和<code>Attributes</code>是在<code>m</code>域内的<code>Pet</code>类作用域内，因此它们需要指明的作用域（也就是第一个参数），就应当是前面创建的<code>pet</code>了。</p>
+<p>另外还需要说明的是枚举中的<code>export_value()</code>，这个函数所有的枚举值导入到<code>Pet</code>的域内，缺少这个调用，将无法在python中使用形如<code>Pet.Dog</code>这样的表达式，而必须用<code>Pet.Kind.Dog</code>，因为这时<code>Dog</code>在python中对<code>Pet</code>是不可见的。</p>
+<p>在cxx11中出现了更安全更好用强类型枚举，你还没有将你的一般枚举换成强类型枚举吗？快去行动吧！要是用了强类型枚举，最好就不要用<code>export_values()</code>把所有枚举量导入到外界了啦，你的本意不就是使它对外界不可见嘛。</p>
+<h4 id="重要的一点">重要的一点</h4>
+<p>对cxx导入的枚举量，python里应该使用<code>==</code>运算符比较而非<code>is</code>运算符，详情可参见文档中给出的issue链接。或许未来官方将会解决这个问题。</p>
+<h2 id="待续">待续</h2>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/cxx/" rel="tag"># cxx</a>
+              <a href="/tags/python/" rel="tag"># python</a>
+              <a href="/tags/pybind/" rel="tag"># pybind</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/12/23/pybind11%E4%B9%8B%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1/" rel="prev" title="pybind11之面向对象">
+      <i class="fa fa-chevron-left"></i> pybind11之面向对象
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/12/29/c-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E5%AE%9E%E6%88%98%E8%AF%BB%E4%B9%A6%E7%AC%94%E8%AE%B0/" rel="next" title="c++并发编程实战读书笔记">
+      c++并发编程实战读书笔记 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E9%87%8D%E8%BD%BD"><span class="nav-number">1.</span> <span class="nav-text">方法重载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B1%BB%E7%9A%84%E5%86%85%E9%83%A8%E7%B1%BB%E5%9E%8B"><span class="nav-number">2.</span> <span class="nav-text">类的内部类型</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%87%8D%E8%A6%81%E7%9A%84%E4%B8%80%E7%82%B9"><span class="nav-number">2.1.</span> <span class="nav-text">重要的一点</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BE%85%E7%BB%AD"><span class="nav-number"></span> <span class="nav-text">待续</span></a></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="sazareame/aisis"
+      src="/images/lika.jpg">
+  <p class="site-author-name" itemprop="name">sazareame/aisis</p>
+  <div class="site-description" itemprop="description">中國科學技術大學</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">sazareame/aisis</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
